@@ -1,0 +1,21 @@
+{
+  "name": "optimistic_panel",
+  "version": "1.0.0",
+  "description": "JavaScript hooks and utilities for OptimisticPanel Phoenix LiveView components",
+  "main": "js/hooks/optimistic_panel.js",
+  "dependencies": {},
+  "peerDependencies": {
+    "phoenix": "^1.7.0",
+    "phoenix_html": "^3.0.0",
+    "phoenix_live_view": "^0.20.0"
+  },
+  "keywords": [
+    "phoenix",
+    "liveview",
+    "modal",
+    "slideover",
+    "optimistic-ui"
+  ],
+  "author": "Tom",
+  "license": "MIT"
+}
