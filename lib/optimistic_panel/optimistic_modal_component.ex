@@ -46,7 +46,7 @@ defmodule OptimisticPanel.OptimisticModalComponent do
   - **Optimistic**: `on_close` includes `JS.dispatch("close-panel", to: "#modal-id")`
     - Modal closes immediately, then server processes the close
     - Smooth, responsive user experience
-  
+
   - **Non-Optimistic**: `on_close` only calls server (e.g., `JS.push("close")`)
     - Modal waits for server response before closing
     - More predictable but less responsive
@@ -79,15 +79,19 @@ defmodule OptimisticPanel.OptimisticModalComponent do
   use Phoenix.Component
   import Phoenix.Component
 
-  attr :id, :string, default: nil, doc: "Unique identifier for the modal"
-  attr :if, :any, default: false, doc: "Condition to show the modal"
-  attr :on_close, :any, default: nil, doc: "JavaScript command to execute when closing"
-  attr :duration, :string, default: "300", doc: "Animation duration in milliseconds"
-  attr :close_on_escape, :string, default: "true", doc: "Whether to close on escape key"
-  attr :close_on_overlay_click, :string, default: "true", doc: "Whether to close on overlay click"
+  attr(:id, :string, default: nil, doc: "Unique identifier for the modal")
+  attr(:if, :any, default: false, doc: "Condition to show the modal")
+  attr(:on_close, :any, default: nil, doc: "JavaScript command to execute when closing")
+  attr(:duration, :string, default: "300", doc: "Animation duration in milliseconds")
+  attr(:close_on_escape, :string, default: "true", doc: "Whether to close on escape key")
 
-  slot :main, required: true
-  slot :loading, required: false
+  attr(:close_on_overlay_click, :string,
+    default: "true",
+    doc: "Whether to close on overlay click"
+  )
+
+  slot(:main, required: true)
+  slot(:loading, required: false)
 
   def optimistic_modal(assigns) do
     assigns =
@@ -111,12 +115,15 @@ defmodule OptimisticPanel.OptimisticModalComponent do
         :main_content_inner_phx_remove_js,
         Phoenix.LiveView.JS.remove_class("overflow-hidden", to: "body")
         |> Phoenix.LiveView.JS.set_attribute({"aria-hidden", "true"}, to: "##{assigns.id}")
-        |> Phoenix.LiveView.JS.set_attribute({"aria-hidden", "true"}, to: "##{assigns.id}-panel_content")
+        |> Phoenix.LiveView.JS.set_attribute({"aria-hidden", "true"},
+          to: "##{assigns.id}-panel_content"
+        )
         |> Phoenix.LiveView.JS.transition(
           {"transition-all duration-[300ms] ease-out", "opacity-100 scale-100",
            "opacity-0 scale-95"},
           time: assigns.duration,
-          to: "##{assigns.id}-panel_content"
+          to: "##{assigns.id}-panel_content",
+          blocking: false
         )
         |> Phoenix.LiveView.JS.transition(
           {"transition-opacity duration-[300ms] ease-out pointer-events-auto", "opacity-50",
@@ -134,13 +141,15 @@ defmodule OptimisticPanel.OptimisticModalComponent do
           {"transition-all duration-[300ms] ease-out", "opacity-0 scale-95",
            "opacity-100 pointer-events-auto scale-100"},
           time: assigns.duration,
-          to: "##{assigns.id}-panel_content"
+          to: "##{assigns.id}-panel_content",
+          blocking: false
         )
         |> Phoenix.LiveView.JS.transition(
           {"transition-opacity duration-[300ms] ease-out", "opacity-0",
            "opacity-50 pointer-events-auto"},
           time: assigns.duration,
-          to: "##{assigns.id}-overlay"
+          to: "##{assigns.id}-overlay",
+          blocking: false
         )
       )
       |> assign(
