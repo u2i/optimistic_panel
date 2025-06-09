@@ -1,45 +1,45 @@
 /**
  * @file OptimisticPanel.js
- * 
+ *
  * JavaScript hook for managing optimistic UI panel components (modals and slideovers).
- * 
+ *
  * This hook implements a sophisticated state machine that handles the complex lifecycle
  * of optimistic UI panels, including:
- * 
+ *
  * - Immediate client-side responses to user actions
  * - Server confirmation and synchronization
  * - Race condition handling between client and server
  * - Smooth transitions and ghost animations
  * - Focus management integration with Phoenix LiveView
- * 
+ *
  * ## State Machine
- * 
+ *
  * The hook manages seven distinct states:
- * 
+ *
  * 1. **Closed** - Panel is hidden and inactive
  * 2. **Opening** - Panel is animating in, waiting for server confirmation
  * 3. **OpeningServerArrived** - Server confirmed open while client was opening
  * 4. **Open** - Panel is fully open and interactive
- * 5. **Closing** - Panel is closing optimistically 
+ * 5. **Closing** - Panel is closing optimistically
  * 6. **ClosingWaitingForServer** - Waiting for server to confirm close
  * 7. **ClosingWaitingForServerStateToOpen** - Server confirmed close but new open pending
- * 
+ *
  * ## Event Handling
- * 
+ *
  * The hook responds to these events:
  * - `REQUEST_OPEN` - User wants to open panel
- * - `REQUEST_CLOSE` - User wants to close panel  
+ * - `REQUEST_CLOSE` - User wants to close panel
  * - `SERVER_REQUESTS_OPEN` - Server confirms panel should be open
  * - `SERVER_REQUESTS_CLOSE` - Server confirms panel should be closed
  * - `PANEL_OPEN_TRANSITION_END` - CSS transition completed
- * 
+ *
  * ## Ghost Animations
- * 
+ *
  * When content changes during panel lifecycle, the hook creates "ghost" elements
  * that animate out while new content animates in, providing seamless transitions.
- * 
+ *
  * ## Focus Management
- * 
+ *
  * Integrates with Phoenix LiveView's focus_wrap component and executes focus
  * commands when panels open to ensure proper accessibility.
  */
@@ -129,7 +129,6 @@ class OpeningState extends PanelState {
 				{ once: true },
 			);
 		}
-		
 	}
 	onPanelOpenTransitionEnd() {
 		this.panel.transitionTo(this.panel.states.open);
@@ -175,17 +174,20 @@ class OpeningServerArrivedState extends PanelState {
 class OpenState extends PanelState {
 	onEnter(isNonOptimistic = false) {
 		this.panel.closeInitiator = null;
-		
+
 		if (isNonOptimistic) {
 			this.panel.liveSocket.execJS(
 				this.panel.el,
 				this.panel.el.dataset.showModal,
 			);
 		}
-		
+
 		// Apply focus to first focusable element
 		if (this.panel.el.dataset.focusFirst && this.panel.liveSocket) {
-			this.panel.liveSocket.execJS(this.panel.el, this.panel.el.dataset.focusFirst);
+			this.panel.liveSocket.execJS(
+				this.panel.el,
+				this.panel.el.dataset.focusFirst,
+			);
 		}
 	}
 	onExit() {
@@ -520,6 +522,7 @@ const OptimisticPanel = {
 	},
 
 	beforeUpdate() {
+		console.log("Entering before update");
 		this.previousMainState =
 			this.getMainContentContainer().dataset.activeIfOpen == "true";
 
@@ -537,6 +540,7 @@ const OptimisticPanel = {
 	},
 
 	updated() {
+		console.log("Entering updated");
 		const eventToHandle = this.getImpliedServerEvent();
 		if (eventToHandle) {
 			this.processPanelEvent(eventToHandle);
@@ -549,7 +553,7 @@ const OptimisticPanel = {
 		console.log(
 			`OptimisticPanel ${this.panelIdForLog || "UNKNOWN_PANEL_DESTROYED"}: destroyed().`,
 		);
-		
+
 		if (this.config && this.config.closeOnEscape && this.escapeKeyListener)
 			document.removeEventListener("keydown", this.escapeKeyListener);
 		if (this.panelContent && this.onOpenTransitionEndEvent)
